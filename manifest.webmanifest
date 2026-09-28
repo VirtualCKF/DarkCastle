@@ -1,6 +1,6 @@
 {
-    "name": "RPG",
-    "short_name": "RPG",
+    "name": "DarkCastle",
+    "short_name": "DarkCastle",
     "start_url": "index.html",
     "display": "fullscreen",
     "background_color": "#000000",
