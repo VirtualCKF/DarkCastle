@@ -206,23 +206,30 @@
         updateBannerVisibility();
       }
 
-      // --- 【防快取機制 2】自動獲取 Unity 的 Version 版本號並注入 URL 參數 ---
-      var unityVersion = "0.012";
-      var buildUrl = "Build";
-      
-      // 自動在 Loader 的後方加上版號後綴（如 .js?v="0.2"）
-      var loaderUrl = buildUrl + "/Virtural_DarkCastle.loader.js?v=" + encodeURIComponent(unityVersion);
-      var config = {
-        // 自動在所有核心資源檔案後方加上 ?v=版號
-        dataUrl: buildUrl + "/Virtural_DarkCastle.data.unityweb?v=" + encodeURIComponent(unityVersion),
-        frameworkUrl: buildUrl + "/Virtural_DarkCastle.framework.js.unityweb?v=" + encodeURIComponent(unityVersion),
-        codeUrl: buildUrl + "/Virtural_DarkCastle.wasm.unityweb?v=" + encodeURIComponent(unityVersion),
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Failusion Studio",
-        productName: "DarkCastle",
-        productVersion: "0.012",
-        showBanner: unityShowBanner,
-      };
+// 1. 註冊 Service Worker 時帶入版本號
+var unityVersion = "0.013";
+
+window.addEventListener("load", function () {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("ServiceWorker.js?v=" + encodeURIComponent(unityVersion));
+  }
+});
+
+// 2. 只有當 unityVersion 改變時，URL 才會變成新的版本參數
+var buildUrl = "Build";
+var vQuery = "?v=" + encodeURIComponent(unityVersion);
+
+var loaderUrl = buildUrl + "/Virtural_DarkCastle.loader.js" + vQuery;
+var config = {
+  dataUrl: buildUrl + "/Virtural_DarkCastle.data.unityweb" + vQuery,
+  frameworkUrl: buildUrl + "/Virtural_DarkCastle.framework.js.unityweb" + vQuery,
+  codeUrl: buildUrl + "/Virtural_DarkCastle.wasm.unityweb" + vQuery,
+  streamingAssetsUrl: "StreamingAssets",
+  companyName: "Failusion Studio",
+  productName: "DarkCastle",
+  productVersion: "0.013",
+  showBanner: unityShowBanner,
+};
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         var meta = document.createElement('meta');
