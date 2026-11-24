@@ -203,28 +203,18 @@
         updateBannerVisibility();
       }
 
-// 1. 註冊 Service Worker 時帶入版本號
-var unityVersion = "0.015";
-
-window.addEventListener("load", function () {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("ServiceWorker.js?v=" + encodeURIComponent(unityVersion));
-  }
-});
-
-// 2. 只有當 unityVersion 改變時，URL 才會變成新的版本參數
+var unityVersion = "0.01";
 var buildUrl = "Build";
-var vQuery = "?v=" + encodeURIComponent(unityVersion);
 
-var loaderUrl = buildUrl + "/Virtural_DarkCastle.loader.js" + vQuery;
+var loaderUrl = buildUrl + "/Virtural_DarkCastle.loader.js";
 var config = {
-  dataUrl: buildUrl + "/Virtural_DarkCastle.data.unityweb" + vQuery,
-  frameworkUrl: buildUrl + "/Virtural_DarkCastle.framework.js.unityweb" + vQuery,
-  codeUrl: buildUrl + "/Virtural_DarkCastle.wasm.unityweb" + vQuery,
+  dataUrl: buildUrl + "/Virtural_DarkCastle.data.unityweb",
+  frameworkUrl: buildUrl + "/Virtural_DarkCastle.framework.js.unityweb",
+  codeUrl: buildUrl + "/Virtural_DarkCastle.wasm.unityweb",
   streamingAssetsUrl: "StreamingAssets",
   companyName: "Failusion Studio",
   productName: "DarkCastle",
-  productVersion: "0.015",
+  productVersion: "0.01",
   showBanner: unityShowBanner,
 };
 
@@ -241,33 +231,33 @@ var config = {
       loadingBar.style.display = "block";
 
       // 方法二：動態透過 HTTP HEAD 請求獲取檔案總容量 (Bytes)
-      async function getTotalFileSize() {
-        var urls = [
-          config.dataUrl,
-          config.frameworkUrl,
-          config.codeUrl
-        ].filter(Boolean);
+async function getTotalFileSize() {
+  var storageKey = "webgl_size_" + unityVersion;
+  var cachedSize = localStorage.getItem(storageKey);
+  if (cachedSize) {
+    return parseInt(cachedSize, 10);
+  }
 
-        var totalBytes = 0;
-        
+  var urls = [config.dataUrl, config.frameworkUrl, config.codeUrl].filter(Boolean);
+  var totalBytes = 0;
+
+  try {
+    await Promise.all(
+      urls.map(async function(url) {
         try {
-          await Promise.all(
-            urls.map(async function(url) {
-              try {
-                var response = await fetch(url, { method: 'HEAD' });
-                var size = response.headers.get('content-length');
-                if (size) {
-                  totalBytes += parseInt(size, 10);
-                }
-              } catch (e) {
-                // 若個別檔案被 CORS 或 HEAD 限制擋掉則靜默跳過
-              }
-            })
-          );
+          var response = await fetch(url, { method: 'HEAD' });
+          var size = response.headers.get('content-length');
+          if (size) totalBytes += parseInt(size, 10);
         } catch (e) {}
+      })
+    );
+  } catch (e) {}
 
-        return totalBytes;
-      }
+  if (totalBytes > 0) {
+    localStorage.setItem(storageKey, totalBytes.toString());
+  }
+  return totalBytes;
+}
 
       var script = document.createElement("script");
       script.src = loaderUrl;
